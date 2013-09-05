@@ -46,7 +46,7 @@ func main() {
 				break
 			}
 		}
-		Exec(bundlePath, args[0], args[1:]...)
+		Exec(bundlePath, pwd, args[0], args[1:]...)
 	case "":
 		fmt.Fprintln(os.Stderr,
 			"Please specify a command, use help to get a list of commands")
