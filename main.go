@@ -120,7 +120,7 @@ func CopyGoDir(src, dest string) error {
 	}
 	for _, f := range files {
 		fPath := path.Join(src, f.Name())
-		if f.Name() == BUNDLE_DIR || (!f.IsDir() && path.Ext(f.Name()) != ".go") {
+		if f.Name() == BUNDLE_DIR {
 			continue
 		}
 		if f.IsDir() {
