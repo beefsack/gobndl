@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -14,6 +15,13 @@ const (
 	BUNDLE_DIR  = ".bndl"
 	CONFIG_FILE = "config"
 )
+
+var VcsPaths = []string{
+	".git",
+	".svn",
+	".hg",
+	".bzr",
+}
 
 func main() {
 	flag.Parse()
@@ -75,4 +83,20 @@ func PackageName(bundlePath string) (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(string(contents)), nil
+}
+
+func CleanVcs(root string) error {
+	return filepath.Walk(root,
+		func(p string, info os.FileInfo, err error) error {
+			for _, vcsP := range VcsPaths {
+				if path.Base(p) == vcsP {
+					err := os.RemoveAll(p)
+					if err != nil {
+						return err
+					}
+					return filepath.SkipDir
+				}
+			}
+			return nil
+		})
 }

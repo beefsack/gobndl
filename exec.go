@@ -80,4 +80,9 @@ func Exec(bundlePath, pwd, cmd string, args ...string) {
 		fmt.Fprintf(os.Stderr, "Error running command: %s\n", err.Error())
 		os.Exit(1)
 	}
+	// Clean up the bundle dir in case new things were added
+	if err := CleanVcs(bundlePath); err != nil {
+		fmt.Fprintf(os.Stderr, "Error cleaning bundle: %s\n", err.Error())
+		os.Exit(1)
+	}
 }
