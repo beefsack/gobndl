@@ -51,14 +51,14 @@ func Exec(bundlePath, pwd, cmd string, args ...string) {
 	// Set environment variables
 	origGoPath := os.Getenv("GOPATH")
 	defer os.Setenv("GOPATH", origGoPath)
-	os.Setenv("GOPATH", fmt.Sprintf("%s%u%s", bundlePath, os.PathListSeparator,
+	os.Setenv("GOPATH", fmt.Sprintf("%s%c%s", bundlePath, os.PathListSeparator,
 		tempDir))
 	origGoBin := os.Getenv("GOBIN")
 	defer os.Setenv("GOBIN", origGoBin)
 	os.Setenv("GOBIN", path.Join(bundlePath, "bin"))
 	origPath := os.Getenv("GOPATH")
 	defer os.Setenv("PATH", origPath)
-	os.Setenv("PATH", fmt.Sprintf("%s%u%s", path.Join(bundlePath, "bin"),
+	os.Setenv("PATH", fmt.Sprintf("%s%c%s", path.Join(bundlePath, "bin"),
 		os.PathListSeparator, os.Getenv("PATH")))
 	c := exec.Command(cmd, args...)
 	c.Dir = path.Join(makeTo, path.Base(packagePath), relativeFromPackageRoot)
