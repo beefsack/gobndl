@@ -47,15 +47,10 @@ func main() {
 			}
 		}
 		Exec(bundlePath, pwd, args[0], args[1:]...)
-	case "":
-		fmt.Fprintln(os.Stderr,
-			"Please specify a command, use help to get a list of commands")
-		os.Exit(1)
+	case "help":
+		Help()
 	default:
-		fmt.Fprintf(os.Stderr,
-			"Could not understand command \"%s\", use help to get a list of commands\n",
-			command)
-		os.Exit(2)
+		Help()
 	}
 }
 
