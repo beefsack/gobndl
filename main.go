@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -99,4 +100,50 @@ func CleanVcs(root string) error {
 			}
 			return nil
 		})
+}
+
+func CopyGoDir(src, dest string) error {
+	fi, err := os.Stat(dest)
+	if err != nil {
+		return err
+	}
+	if !fi.IsDir() {
+		return errors.New("Destination is not a directory")
+	}
+	destDir := path.Join(dest, path.Base(src))
+	if err := os.Mkdir(destDir, 0755); err != nil {
+		return err
+	}
+	files, err := ioutil.ReadDir(src)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		fPath := path.Join(src, f.Name())
+		if f.Name() == BUNDLE_DIR || (!f.IsDir() && path.Ext(f.Name()) != ".go") {
+			continue
+		}
+		if f.IsDir() {
+			// Recurse dir
+			if err := CopyGoDir(fPath, destDir); err != nil {
+				return err
+			}
+		} else {
+			// Copy file
+			sf, err := os.Open(fPath)
+			if err != nil {
+				return err
+			}
+			defer sf.Close()
+			df, err := os.Create(path.Join(destDir, f.Name()))
+			if err != nil {
+				return err
+			}
+			defer df.Close()
+			if _, err := io.Copy(df, sf); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

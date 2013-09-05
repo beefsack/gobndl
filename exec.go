@@ -35,15 +35,15 @@ func Exec(bundlePath, pwd, cmd string, args ...string) {
 		fmt.Fprintf(os.Stderr, "Could not get temp dir: %s\n", err.Error())
 		os.Exit(1)
 	}
-	defer os.RemoveAll(tempDir)
+	// defer os.RemoveAll(tempDir)
+	fmt.Println(tempDir)
 	makeTo := path.Join(tempDir, "src", path.Dir(packageName))
 	if err := os.MkdirAll(makeTo, 0755); err != nil {
 		fmt.Fprintf(os.Stderr,
 			"Could not make temporary workspace for package: %s\n", err.Error())
 		os.Exit(1)
 	}
-	cpCmd := exec.Command("cp", "-rf", packagePath, makeTo)
-	if err := cpCmd.Run(); err != nil {
+	if err := CopyGoDir(packagePath, makeTo); err != nil {
 		fmt.Fprintf(os.Stderr,
 			"Could not copy package to temporary workspace: %s\n", err.Error())
 		os.Exit(1)
