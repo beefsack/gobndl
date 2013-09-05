@@ -36,7 +36,6 @@ func Exec(bundlePath, pwd, cmd string, args ...string) {
 		os.Exit(1)
 	}
 	// defer os.RemoveAll(tempDir)
-	fmt.Println(tempDir)
 	makeTo := path.Join(tempDir, "src", path.Dir(packageName))
 	if err := os.MkdirAll(makeTo, 0755); err != nil {
 		fmt.Fprintf(os.Stderr,
