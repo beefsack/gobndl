@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -22,9 +23,12 @@ func Init(p string) {
 	// Make sure the config exists
 	configPath := path.Join(bundlePath, CONFIG_FILE)
 	if _, err := os.Stat(configPath); err == nil {
-		fmt.Fprintln(os.Stderr, "There is already a bundle in this directory")
+		fmt.Fprintln(os.Stderr, "There is already a bundle config in this directory")
 	} else {
-		if err := ioutil.WriteFile(configPath, []byte("your/package/name/here"),
+		fmt.Print("Please enter your package name (eg. github.com/beefsack/gobndl): ")
+		br := bufio.NewReader(os.Stdin)
+		lineBytes, _, _ := br.ReadLine()
+		if err := ioutil.WriteFile(configPath, lineBytes,
 			0644); err != nil {
 			fmt.Fprintf(os.Stderr, "Could not create %s file: %s\n",
 				configPath, err.Error())
@@ -32,6 +36,5 @@ func Init(p string) {
 		}
 	}
 	fmt.Printf(`Created %s
-Make sure to edit %s and replace the package name with your own
-`, BUNDLE_DIR, configPath)
+`, BUNDLE_DIR)
 }
