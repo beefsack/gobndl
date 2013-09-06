@@ -47,8 +47,7 @@ func main() {
 		}
 		bundlePath, err := FindBundlePath(pwd)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Could not find bundle dir: %s\n",
-				err.Error())
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 		// Find args
@@ -68,8 +67,7 @@ func main() {
 		}
 		bundlePath, err := FindBundlePath(pwd)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Could not find bundle dir: %s\n",
-				err.Error())
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 		// Find args
@@ -79,6 +77,10 @@ func main() {
 				args = os.Args[i+1:]
 				break
 			}
+		}
+		if len(args) < 1 {
+			fmt.Fprintln(os.Stderr, "Please specify a command to execute")
+			os.Exit(1)
 		}
 		Exec(bundlePath, pwd, args[0], args[1:]...)
 	case "help":
@@ -94,7 +96,8 @@ func FindBundlePath(from string) (string, error) {
 		return bundlePath, nil
 	}
 	if from == "" || path.Base(from) == "/" {
-		return "", errors.New("Could not find bundle directory")
+		return "", errors.New(
+			`Run "gobndl init" to initialise a new bundle in this directory`)
 	}
 	return FindBundlePath(path.Dir(from))
 }

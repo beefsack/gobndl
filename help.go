@@ -5,7 +5,7 @@ import (
 )
 
 func Help() {
-	fmt.Println(`gobndl is a tool to bundle package dependencies
+	fmt.Println(`gobndl is a tool to bundle package dependencies for Go projects
 
 Usage:
 
