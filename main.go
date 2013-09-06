@@ -201,7 +201,7 @@ func UseBndl(bundlePath string, replacePath bool, cb func() error) error {
 }
 
 func GetImports(packagePath string) []string {
-	// Find all imports in the packagePath dir
+	// Find all external imports in the packagePath dir
 	packageMap := map[string]bool{}
 	fset := token.NewFileSet()
 	packageReg := regexp.MustCompile("^[`\"]?(.+?)[`\"]?$")
@@ -214,8 +214,11 @@ func GetImports(packagePath string) []string {
 				if err == nil {
 					for _, s := range f.Imports {
 						if matches := packageReg.FindStringSubmatch(
-							s.Path.Value); matches != nil && matches[1] != "" &&
-							matches[1][0] != '.' {
+							s.Path.Value); matches != nil &&
+							matches[1] != "" && matches[1][0] != '.' &&
+							!strings.Contains(packagePath,
+								strings.Replace(matches[1], "/",
+									string(os.PathSeparator), -1)) {
 							packageMap[matches[1]] = true
 						}
 					}
