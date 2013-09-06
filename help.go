@@ -14,14 +14,17 @@ Usage:
 The commands are:
 
     init        initialise a new bundle in this directory
+    get         get a package or packages into your bundle, if called without
+                arguments it will parse all go files in your package directory
+                and get all dependencies
     exec        run the following commands using the bundled environment
 
 Common usages:
 
-    Install dependant packages for the current directory into the bundle
-        gobndl exec go get
+    Install all dependencies in your package directory into the bundle
+        gobndl get
     Install a specific go package into the bundle
-        gobndl exec go get github.com/robfig/revel/revel
-    Run a specific command from the bundle bin
+        gobndl get github.com/robfig/revel/revel
+    Run a specific command from the bundle bin directory
         gobndl exec revel run github.com/robfig/revel/samples/chat`)
 }
