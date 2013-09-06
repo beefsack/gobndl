@@ -200,8 +200,12 @@ func UseBndl(bundlePath string, replacePath bool, cb func() error) error {
 	return cb()
 }
 
-func GetImports(packagePath string) []string {
+func GetImports(packagePath string) ([]string, error) {
 	// Find all external imports in the packagePath dir
+	packageName, err := GetPackageName(packagePath)
+	if err != nil {
+		return []string{}, err
+	}
 	packageMap := map[string]bool{}
 	fset := token.NewFileSet()
 	packageReg := regexp.MustCompile("^[`\"]?(.+?)[`\"]?$")
@@ -215,11 +219,12 @@ func GetImports(packagePath string) []string {
 					for _, s := range f.Imports {
 						if matches := packageReg.FindStringSubmatch(
 							s.Path.Value); matches != nil &&
-							matches[1] != "" && matches[1][0] != '.' &&
-							!strings.Contains(packagePath,
-								strings.Replace(matches[1], "/",
-									string(os.PathSeparator), -1)) {
-							packageMap[matches[1]] = true
+							matches[1] != "" && matches[1][0] != '.' {
+							importPath := strings.Replace(matches[1], "/",
+								string(os.PathSeparator), -1)
+							if !strings.Contains(importPath, packageName) {
+								packageMap[matches[1]] = true
+							}
 						}
 					}
 				}
@@ -232,7 +237,7 @@ func GetImports(packagePath string) []string {
 		imports[i] = p
 		i += 1
 	}
-	return imports
+	return imports, nil
 }
 
 func RunCommand(cmd string, args ...string) error {
@@ -250,4 +255,19 @@ func RunCommand(cmd string, args ...string) error {
 	}
 	go io.Copy(os.Stderr, errPipe)
 	return c.Run()
+}
+
+func GetPackageName(packagePath string) (string, error) {
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"),
+		string(os.PathListSeparator)) {
+		evalGopath, err := filepath.EvalSymlinks(gopath)
+		if err != nil {
+			return "", err
+		}
+		if relPath, err := filepath.Rel(path.Join(evalGopath, "src"),
+			packagePath); err == nil {
+			return relPath, nil
+		}
+	}
+	return "", errors.New("Directory does not appear to be in GOPATH")
 }

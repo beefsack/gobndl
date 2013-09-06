@@ -7,9 +7,14 @@ import (
 )
 
 func Get(bundlePath string, packages ...string) {
+	var err error
 	if len(packages) == 0 {
 		packagePath := path.Dir(bundlePath)
-		packages = GetImports(packagePath)
+		packages, err = GetImports(packagePath)
+		if err != nil {
+			fmt.Println(os.Stderr, err)
+			os.Exit(1)
+		}
 	}
 	if err := UseBndl(bundlePath, true, func() error {
 		return RunCommand("go", append([]string{"get"}, packages...)...)
