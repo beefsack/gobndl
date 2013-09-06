@@ -4,11 +4,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"go/parser"
+	"go/token"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -35,6 +39,27 @@ func main() {
 			os.Exit(1)
 		}
 		Init(pwd)
+	case "get":
+		pwd, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, `Could not get pwd: %s`, err.Error())
+			os.Exit(1)
+		}
+		bundlePath, err := FindBundlePath(pwd)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not find bundle dir: %s\n",
+				err.Error())
+			os.Exit(1)
+		}
+		// Find args
+		var args []string
+		for i, a := range os.Args {
+			if a == "get" {
+				args = os.Args[i+1:]
+				break
+			}
+		}
+		Get(bundlePath, args...)
 	case "exec":
 		pwd, err := os.Getwd()
 		if err != nil {
@@ -146,4 +171,76 @@ func CopyGoDir(src, dest string) error {
 		}
 	}
 	return nil
+}
+
+func UseBndl(bundlePath string, replacePath bool, cb func() error) error {
+	// Set GOPATH
+	var newGoPath string
+	origGoPath := os.Getenv("GOPATH")
+	defer os.Setenv("GOPATH", origGoPath)
+	if replacePath {
+		newGoPath = bundlePath
+	} else {
+		newGoPath = fmt.Sprintf("%s%c%s", bundlePath, os.PathListSeparator,
+			origGoPath)
+	}
+	os.Setenv("GOPATH", newGoPath)
+	// Set GOBIN
+	origGoBin := os.Getenv("GOBIN")
+	defer os.Setenv("GOBIN", origGoBin)
+	os.Setenv("GOBIN", path.Join(bundlePath, "bin"))
+	// Set PATH
+	origPath := os.Getenv("PATH")
+	defer os.Setenv("PATH", origPath)
+	os.Setenv("PATH", fmt.Sprintf("%s%c%s", path.Join(bundlePath, "bin"),
+		os.PathListSeparator, origPath))
+	return cb()
+}
+
+func GetImports(packagePath string) []string {
+	// Find all imports in the packagePath dir
+	packageMap := map[string]bool{}
+	fset := token.NewFileSet()
+	packageReg := regexp.MustCompile("^[`\"]?(.+?)[`\"]?$")
+	filepath.Walk(packagePath,
+		func(p string, info os.FileInfo, err error) error {
+			if path.Base(p) == BUNDLE_DIR {
+				return filepath.SkipDir
+			} else if !info.IsDir() && path.Ext(p) == ".go" {
+				f, err := parser.ParseFile(fset, p, nil, parser.ImportsOnly)
+				if err == nil {
+					for _, s := range f.Imports {
+						if matches := packageReg.FindStringSubmatch(
+							s.Path.Value); matches != nil {
+							packageMap[matches[1]] = true
+						}
+					}
+				}
+			}
+			return nil
+		})
+	imports := make([]string, len(packageMap))
+	i := 0
+	for p, _ := range packageMap {
+		imports[i] = p
+		i += 1
+	}
+	return imports
+}
+
+func RunCommand(cmd string, args ...string) error {
+	c := exec.Command(cmd, args...)
+	// Redirect stdout and stderr to user
+	outPipe, err := c.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("Error getting the output pipe: %s\n",
+			err.Error())
+	}
+	go io.Copy(os.Stdout, outPipe)
+	errPipe, err := c.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("Error getting the error pipe: %s\n", err.Error())
+	}
+	go io.Copy(os.Stderr, errPipe)
+	return c.Run()
 }
