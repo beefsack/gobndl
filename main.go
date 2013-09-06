@@ -214,7 +214,8 @@ func GetImports(packagePath string) []string {
 				if err == nil {
 					for _, s := range f.Imports {
 						if matches := packageReg.FindStringSubmatch(
-							s.Path.Value); matches != nil {
+							s.Path.Value); matches != nil && matches[1] != "" &&
+							matches[1][0] != '.' {
 							packageMap[matches[1]] = true
 						}
 					}
