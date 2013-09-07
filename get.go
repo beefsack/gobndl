@@ -29,7 +29,6 @@ func Get(bundlePath string, packages ...string) {
 		}
 		packages = append(origPackages, packages...)
 	}
-	fmt.Println(packages)
 	if err := UseBndl(bundlePath, true, func() error {
 		return RunCommand("go", append([]string{"get"}, packages...)...)
 	}); err != nil {
