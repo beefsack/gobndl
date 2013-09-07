@@ -60,26 +60,6 @@ func main() {
 			}
 		}
 		Get(bundlePath, args...)
-	case "update":
-		pwd, err := os.Getwd()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, `Could not get pwd: %s`, err.Error())
-			os.Exit(1)
-		}
-		bundlePath, err := FindBundlePath(pwd)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-		// Find args
-		var args []string
-		for i, a := range os.Args {
-			if a == "update" {
-				args = os.Args[i+1:]
-				break
-			}
-		}
-		Update(bundlePath, args...)
 	case "exec":
 		pwd, err := os.Getwd()
 		if err != nil {

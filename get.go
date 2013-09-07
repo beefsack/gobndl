@@ -13,14 +13,23 @@ func Get(bundlePath string, packages ...string) {
 		os.Exit(1)
 	}
 	defer MangleVcsDirs(bundlePath)
-	if len(packages) == 0 {
+	nonFlagPackageCount := 0
+	for _, p := range packages {
+		if len(p) > 0 && p[0] != '-' {
+			nonFlagPackageCount += 1
+		}
+	}
+	if nonFlagPackageCount == 0 {
+		origPackages := packages
 		packagePath := path.Dir(bundlePath)
 		packages, err = GetImports(packagePath)
 		if err != nil {
 			fmt.Println(os.Stderr, err)
 			os.Exit(1)
 		}
+		packages = append(origPackages, packages...)
 	}
+	fmt.Println(packages)
 	if err := UseBndl(bundlePath, true, func() error {
 		return RunCommand("go", append([]string{"get"}, packages...)...)
 	}); err != nil {
