@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	BUNDLE_DIR  = ".bndl"
-	CONFIG_FILE = "config"
+	BUNDLE_DIR    = ".bndl"
+	CONFIG_FILE   = "config"
+	MANGLE_SUFFIX = ".gobndlmangled"
 )
 
 var VcsPaths = []string{
@@ -59,6 +60,26 @@ func main() {
 			}
 		}
 		Get(bundlePath, args...)
+	case "update":
+		pwd, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, `Could not get pwd: %s`, err.Error())
+			os.Exit(1)
+		}
+		bundlePath, err := FindBundlePath(pwd)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		// Find args
+		var args []string
+		for i, a := range os.Args {
+			if a == "update" {
+				args = os.Args[i+1:]
+				break
+			}
+		}
+		Update(bundlePath, args...)
 	case "exec":
 		pwd, err := os.Getwd()
 		if err != nil {
@@ -114,13 +135,29 @@ func PackageName(bundlePath string) (string, error) {
 	return strings.TrimSpace(string(contents)), nil
 }
 
-func CleanVcs(root string) error {
+func MangleVcsDirs(root string) error {
 	return filepath.Walk(root,
 		func(p string, info os.FileInfo, err error) error {
 			for _, vcsP := range VcsPaths {
 				if path.Base(p) == vcsP {
-					err := os.RemoveAll(p)
-					if err != nil {
+					if err := os.Rename(p, fmt.Sprintf("%s%s", p,
+						MANGLE_SUFFIX)); err != nil {
+						return err
+					}
+					return filepath.SkipDir
+				}
+			}
+			return nil
+		})
+}
+
+func UnmangleVcsDirs(root string) error {
+	return filepath.Walk(root,
+		func(p string, info os.FileInfo, err error) error {
+			for _, vcsP := range VcsPaths {
+				if path.Base(p) == fmt.Sprintf("%s%s", vcsP, MANGLE_SUFFIX) {
+					if err := os.Rename(p,
+						p[:len(p)-len(MANGLE_SUFFIX)]); err != nil {
 						return err
 					}
 					return filepath.SkipDir

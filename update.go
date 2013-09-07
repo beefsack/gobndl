@@ -6,7 +6,7 @@ import (
 	"path"
 )
 
-func Get(bundlePath string, packages ...string) {
+func Update(bundlePath string, packages ...string) {
 	var err error
 	if err := UnmangleVcsDirs(bundlePath); err != nil {
 		fmt.Fprintf(os.Stderr, "Could not unmangle vcs dirs: %s", err.Error())
@@ -22,7 +22,7 @@ func Get(bundlePath string, packages ...string) {
 		}
 	}
 	if err := UseBndl(bundlePath, true, func() error {
-		return RunCommand("go", append([]string{"get"}, packages...)...)
+		return RunCommand("go", append([]string{"get", "-u"}, packages...)...)
 	}); err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
 		os.Exit(1)
