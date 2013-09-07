@@ -1,9 +1,9 @@
-gobndl - Go package bundling
-============================
+gobndl - Go package dependency bundler
+======================================
 
-**gobndl** is a tool to bundle Go packages inside your project so you don't have
-to worry about external dependencies disappearing, and allows you to lock to a
-specific version of a dependency.
+**gobndl** is a tool to bundle Go dependencies inside your project so you don't
+have to worry about external dependencies disappearing, and allowing you to lock
+to a specific version of a dependency for your package.
 
 Features
 --------
