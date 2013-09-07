@@ -16,16 +16,23 @@ Features
 Installation
 ------------
 
-```
--> go get github.com/beefsack/gobndl
--> gobndl help
+```bash
+~  go get github.com/beefsack/gobndl
 ```
 
 Usage
 -----
 
-*   Initialise a bundle in your project root directory by running `gobndl init`
-*   Get all package dependencies in your project using `gobndl get`
-*   Get a specific package using `gobndl get github.com/robfig/revel/revel`
-*   Execute commands using your bundle environment and binaries in your bundle
-    using `gobndl exec revel run github.com/robfig/revel/samples/chat`
+```bash
+# Initialise your bundle and install dependencies
+~  cd github.com/beefsack/my-go-package
+~  gobndl init
+~  gobndl get
+
+# Use the bundle with exec
+~  gobndl exec go build
+
+# You can also install binaries to your bundle
+~  gobndl get github.com/robfig/revel/revel
+~  gobndl exec revel run github.com/robfig/revel/samples/chat
+```
